@@ -1,3 +1,2 @@
 # mygithub
-first
-gaga
+读我文件内容。
