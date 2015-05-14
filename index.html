@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<!--
+    Copyright (c) 2012-2014 Adobe Systems Incorporated. All rights reserved.
+
+    Licensed to the Apache Software Foundation (ASF) under one
+    or more contributor license agreements.  See the NOTICE file
+    distributed with this work for additional information
+    regarding copyright ownership.  The ASF licenses this file
+    to you under the Apache License, Version 2.0 (the
+    "License"); you may not use this file except in compliance
+    with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing,
+    software distributed under the License is distributed on an
+    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+     KIND, either express or implied.  See the License for the
+    specific language governing permissions and limitations
+    under the License.
+-->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="msapplication-tap-highlight" content="no" />
+        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <link rel="stylesheet" type="text/css" href="css/jquery.mobile-1.4.5.min.css" />
+        <title>工作狼</title>
+    </head>
+    <body>
+        <div data-role="page" id="index">
+            <div data-role="header" data-position="fixed">
+                <h1>我是标题</h1>
+            </div>
+            <div role="main" class="ui-content">
+                <form>
+                    <div class='ui-field-contain'>
+                        <label>发车站</label>
+                        <input id="search-begin" type='text' />
+                    </div>
+                    <div class='ui-field-contain'>
+                        <label>到达站</label>
+                        <input id="search-end" type='text' />
+                    </div>
+                    <div class='ui-field-contain'>
+                        <label>车次</label>
+                        <input id="search-no" type='text' />
+                    </div>
+                    <input id='search-submit' type="submit" value='点我加载'/>
+                </form> 
+
+                <ul data-role='listview' data-inset='true' id="list">
+                    
+                </ul> 
+            </div>
+            <div data-role="footer" data-position="fixed">
+                <div data-role='navbar'>
+                    <ul>
+                        <li><a href="#" data-icon='camera'>照相机</a></li>
+                        <li><a href="#" data-icon='camera'>照相机</a></li>
+                        <li><a href="#" data-icon='camera'>照相机</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div><!-- 页面1 -->
+        <div data-role="page" id="index2">
+            <div data-role="header">
+                <h1>我是标题2</h1>
+                
+            </div>
+            <div  role="main" class="ui-content">
+                <p>我是内容2</p>
+                <p><a data-transition="slide" href="#index3">去3</a></p>
+            </div>
+            <div data-role="footer">
+                <h1>我是页脚2</h1>
+            </div>
+        </div><!-- 页面2 -->
+        <div data-role="page" id="index3">
+            <div data-role="header">
+                <h1>我是标题3</h1>
+                
+            </div>
+            <div role="main" class="ui-content">
+                <p>我是内容3</p>
+                <p><a data-transition="slide" href="#index">去1</a></p>
+            </div>
+            <div data-role="footer">
+                <h1>我是页脚3</h1>
+            </div>
+        </div><!-- 页面2 -->
+
+        <!-- <div class="app">
+            <h1>PhoneGap</h1>
+            <div id="deviceready" class="blink">
+                <p class="event listening">Connecting to Device</p>
+                <p class="event received">Device is Ready</p>
+            </div>
+        </div> -->
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <script type="text/javascript">
+            app.initialize();
+        </script>
+        <script type="text/javascript" src="js/jquery-1.11.3.min.js"></script>
+        <script type="text/javascript" src="js/jquery.mobile-1.4.5.min.js"></script>
+        <script type="text/javascript">
+            var url1 = "http://www.webxml.com.cn/WebServices/TrainTimeWebService.asmx/getStationAndTimeByStationName?UserID=";
+            var url2 = "http://www.webxml.com.cn/WebServices/TrainTimeWebService.asmx/getStationAndTimeDataSetByLikeTrainCode?UserID=";
+            var url3 = "http://www.webxml.com.cn/WebServices/TrainTimeWebService.asmx/getDetailInfoByTrainCode?UserID=";
+            // 绑定事件
+            var bindEvent = function(){
+                $("#search-submit").on('click',getTrainList);
+                $("#list").on('click','a',getInfoByTrainCode);            
+            }
+            // 获取车次列表
+            var getTrainList = function(){
+                if($("#search-no").val()||($("#search-begin").val() && $("#search-end").val())){
+                    var searchbtn = $(this);
+                    searchbtn.button('option','disabled',true);
+                    $.mobile.loading('show');
+                    var _data = {};
+                    var _url = url1;
+                    if(!$("#search-no").val()){
+                        _data.StartStation = $("#search-begin").val();
+                        _data.ArriveStation = $("#search-end").val();
+                    }else{
+                        _data.TrainCode = $("#search-no").val();
+                        _url = url2;
+                    }
+                    $.get(_url,_data,function(data){
+                        var list = $("#list");
+                        var timeTabs = $(data).find("TimeTable");
+                        var _arr = [];
+                        timeTabs.each(function(index,obj){
+                            var i = index;
+                            if (i>10){
+                                return false;
+                            }
+                            var that = $(this);
+                            if(that.find("FirstStation").text()=="数据没有被发现"){
+                                return false;
+                            }
+
+                            var _html = "<li><a href='#' data-no="+that.find("TrainCode").text()+">" + 
+                                "<h2>" + that.find("TrainCode").text() + "</h2>" +
+                                "<p>"+that.find("FirstStation").text()+"-"+ that.find("LastStation").text()+"</p>"
+                                +"<p>用时:"+that.find("UseDate").text()+"</p>"
+                                +"<p class='ui-li-aside'>"+that.find("StartTime").text()+"开</p>"
+                                +"</a></li>";
+                            _arr.push(_html);
+
+                        });
+                        if(_arr.length>0){
+                            list.html(_arr.join(""));
+                            list.listview("refresh");
+                        }
+                        $.mobile.loading("hide");
+                        searchbtn.button("option","disabled",false);
+                    });
+                }else{
+                    alert("请输入车次编号或起始站！");
+                    //这里必须return false，否则页面会刷新。
+                    return false;
+                }
+            };
+
+            var getInfoByTrainCode = function(){
+
+            };
+
+            $(document).on('pageinit','#index',function(){
+                bindEvent();
+            });
+            // $(document).on("pagebeforecreate",function(){
+            //     alert('pagebeforecreate事件执行');
+            // });
+            // $(document).on("pagecreate",function(){
+            //     alert('pagecreate事件执行');
+            // });
+            // $(document).on("pageinit",function(){
+            //     alert('pageinit事件执行');
+            // });
+            // // 这三个事件只在整个页面加载时执行，之后不再执行。
+            // 
+            // $(document).on("pagebeforehide","#index",function pagebeforehidefunc (argument) {
+            //     alert('index 的pagebeforehide事件执行');
+            // })
+            // $(document).on("pagehide","#index",function(){
+            //     alert('index 的pagehide事件执行');
+            // });
+            // $(document).on('pagebeforeshow','#index2',function(){
+            //     alert('index2 的pagebeforeshow 事件执行');
+            // });
+            // $(document).on('pageshow','#index2',function(){
+            //     alert('index2 的pageshow事件执行');
+            // });
+            // 给页面绑定事件，页面加载前，隐藏前，页面显示前，页面显示事件。
+        </script>
+
+
+    </body>
+</html>
